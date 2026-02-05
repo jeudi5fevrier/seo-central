@@ -48,11 +48,15 @@ require_once __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
     </select>
     <span class="text-muted text-small"><?= count($sites) ?> site<?= count($sites) > 1 ? 's' : '' ?></span>
+    <span class="filter-separator"></span>
+    <button class="btn btn-sm" onclick="copySelectedDomains()">Copier NDD</button>
+    <button class="btn btn-sm" onclick="copySelectedAll()">Copier tout</button>
 </div>
 
 <table class="data-table" id="sites-table">
     <thead>
         <tr>
+            <th class="col-check"><input type="checkbox" id="check-all" onchange="toggleAllChecks(this)"></th>
             <th data-sort="string">Domaine</th>
             <th data-sort="string">Thematique</th>
             <th data-sort="number" class="num">KW</th>
@@ -65,7 +69,7 @@ require_once __DIR__ . '/includes/header.php';
     <tbody>
         <?php if (empty($sites)): ?>
             <tr class="empty-row">
-                <td colspan="7">Aucun site. <a href="<?= BASE_URL ?>/add.php">Ajouter des sites</a></td>
+                <td colspan="8">Aucun site. <a href="<?= BASE_URL ?>/add.php">Ajouter des sites</a></td>
             </tr>
         <?php else: ?>
             <?php foreach ($sites as $site): ?>
@@ -73,7 +77,8 @@ require_once __DIR__ . '/includes/header.php';
                     $deltaKw = formatDelta($site['current_kw_count'], $site['initial_kw_count']);
                     $deltaTraffic = formatDelta($site['current_traffic'], $site['initial_traffic']);
                 ?>
-                <tr>
+                <tr data-domain="<?= htmlspecialchars($site['domain']) ?>" data-thematic="<?= htmlspecialchars($site['thematic_name']) ?>" data-kw="<?= $site['current_kw_count'] ?>" data-traffic="<?= $site['current_traffic'] ?>">
+                    <td class="col-check"><input type="checkbox" class="row-check"></td>
                     <td><a href="<?= BASE_URL ?>/site.php?id=<?= $site['id'] ?>"><?= htmlspecialchars($site['domain']) ?></a></td>
                     <td><?= htmlspecialchars($site['thematic_name']) ?></td>
                     <td class="num"><?= formatNumber($site['current_kw_count']) ?></td>

@@ -95,6 +95,57 @@ function deleteSite(siteId, domain) {
     });
 }
 
+// --- Checkboxes & Copy ---
+
+function toggleAllChecks(master) {
+    document.querySelectorAll('.row-check').forEach(function(cb) {
+        cb.checked = master.checked;
+    });
+}
+
+function getSelectedRows() {
+    var rows = [];
+    document.querySelectorAll('.row-check:checked').forEach(function(cb) {
+        rows.push(cb.closest('tr'));
+    });
+    return rows;
+}
+
+function copySelectedDomains() {
+    var rows = getSelectedRows();
+    if (rows.length === 0) {
+        alert('Aucun site selectionne.');
+        return;
+    }
+    var text = rows.map(function(tr) {
+        return tr.dataset.domain;
+    }).join('\n');
+    copyToClipboard(text);
+}
+
+function copySelectedAll() {
+    var rows = getSelectedRows();
+    if (rows.length === 0) {
+        alert('Aucun site selectionne.');
+        return;
+    }
+    var text = rows.map(function(tr) {
+        return [tr.dataset.domain, tr.dataset.thematic, tr.dataset.kw, tr.dataset.traffic].join('\t');
+    }).join('\n');
+    copyToClipboard(text);
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        var msg = document.createElement('span');
+        msg.textContent = 'Copie !';
+        msg.className = 'copy-feedback';
+        var filters = document.querySelector('.filters');
+        filters.appendChild(msg);
+        setTimeout(function() { msg.remove(); }, 2000);
+    });
+}
+
 // --- Filter ---
 
 function filterByThematic(thematicId) {
