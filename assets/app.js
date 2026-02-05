@@ -136,14 +136,41 @@ function copySelectedAll() {
 }
 
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
-        var msg = document.createElement('span');
-        msg.textContent = 'Copie !';
-        msg.className = 'copy-feedback';
-        var filters = document.querySelector('.filters');
+    // Fallback pour HTTP (execCommand) + moderne (clipboard API)
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    var success = false;
+    try {
+        success = document.execCommand('copy');
+    } catch (e) {
+        success = false;
+    }
+
+    document.body.removeChild(textarea);
+
+    if (success) {
+        showCopyFeedback();
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(showCopyFeedback);
+    } else {
+        alert('Copie impossible sur ce navigateur.');
+    }
+}
+
+function showCopyFeedback() {
+    var msg = document.createElement('span');
+    msg.textContent = 'Copie !';
+    msg.className = 'copy-feedback';
+    var filters = document.querySelector('.filters');
+    if (filters) {
         filters.appendChild(msg);
         setTimeout(function() { msg.remove(); }, 2000);
-    });
+    }
 }
 
 // --- Filter ---
@@ -162,11 +189,13 @@ function filterByThematic(thematicId) {
 
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.data-table').forEach(function(table) {
-        const headers = table.querySelectorAll('th[data-sort]');
-        headers.forEach(function(header, index) {
-            header.addEventListener('click', function() {
-                sortTable(table, index, header.dataset.sort, header);
-            });
+        const allHeaders = table.querySelectorAll('th');
+        allHeaders.forEach(function(header, index) {
+            if (header.dataset.sort) {
+                header.addEventListener('click', function() {
+                    sortTable(table, index, header.dataset.sort, header);
+                });
+            }
         });
     });
 });
