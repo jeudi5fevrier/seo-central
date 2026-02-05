@@ -15,40 +15,21 @@ class Haloscan
     }
 
     /**
-     * Recupere les top KW d'un domaine via /domains/keywords.
-     * Tente d'abord sans filtre KW, puis via pageBestKeywords en fallback.
+     * Recupere les top KW d'un domaine via /domains/positions.
+     * Retourne les 10 meilleurs KW par trafic + le total de KW du domaine.
      */
     public function refreshSite(string $domain): array
     {
-        // Tentative 1 : appel direct sans filtre de keywords
-        $response = $this->post('/domains/keywords', [
+        $response = $this->post('/domains/positions', [
             'input' => $domain,
-            'keywords' => [],
-            'lineCount' => 10,
-            'order' => 'desc',
-            'order_by' => 'traffic',
             'mode' => 'root',
+            'lineCount' => 10,
+            'order_by' => 'traffic',
+            'order' => 'desc',
         ]);
 
-        // Si ca echoue, tentative 2 : via pageBestKeywords
         if (!$response || empty($response['results'])) {
-            appLog('INFO', "Tentative 1 echouee pour $domain, essai via pageBestKeywords");
-
-            $kwNames = $this->getTopKeywordNames($domain);
-            if (!empty($kwNames)) {
-                $response = $this->post('/domains/keywords', [
-                    'input' => $domain,
-                    'keywords' => $kwNames,
-                    'lineCount' => 10,
-                    'order' => 'desc',
-                    'order_by' => 'traffic',
-                    'mode' => 'root',
-                ]);
-            }
-        }
-
-        if (!$response || empty($response['results'])) {
-            appLog('INFO', "Aucun resultat pour $domain apres toutes les tentatives");
+            appLog('INFO', "Aucun resultat /domains/positions pour $domain");
             return [
                 'kw_count' => 0,
                 'traffic' => 0,
@@ -69,35 +50,16 @@ class Haloscan
             $totalTraffic += $kw['traffic'];
         }
 
+        // total_keyword_count = nombre reel de KW du domaine (pas juste les 10 retournes)
+        $totalKwCount = (int)($response['total_keyword_count'] ?? count($keywords));
+
+        appLog('INFO', "Donnees pour $domain", ['total_kw' => $totalKwCount, 'top10_traffic' => $totalTraffic, 'results' => count($keywords)]);
+
         return [
-            'kw_count' => count($keywords),
+            'kw_count' => $totalKwCount,
             'traffic' => $totalTraffic,
             'keywords' => $keywords,
         ];
-    }
-
-    /**
-     * Fallback : recupere les noms des top KW via pageBestKeywords.
-     */
-    private function getTopKeywordNames(string $domain): array
-    {
-        $response = $this->post('/domains/pageBestKeywords', [
-            'input' => [$domain],
-            'lineCount' => 10,
-            'strategy' => 'both',
-        ]);
-
-        if (!$response || empty($response['results'])) {
-            return [];
-        }
-
-        $bestKw = $response['results'][0]['best_keywords'] ?? '';
-        if (empty($bestKw)) {
-            return [];
-        }
-
-        $keywords = array_map('trim', explode(',', $bestKw));
-        return array_filter($keywords, fn($kw) => $kw !== '');
     }
 
     /**
