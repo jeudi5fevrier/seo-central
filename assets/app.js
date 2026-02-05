@@ -2,7 +2,13 @@
  * SEO Central - JavaScript
  */
 
-const BASE_URL = document.querySelector('link[rel="stylesheet"]').href.replace('/assets/style.css', '');
+var BASE_URL = '';
+(function() {
+    var link = document.querySelector('link[rel="stylesheet"]');
+    if (link && link.href) {
+        BASE_URL = link.href.replace('/assets/style.css', '');
+    }
+})();
 
 // --- Refresh ---
 
