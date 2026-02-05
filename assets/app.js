@@ -112,7 +112,9 @@ function getSelectedRows() {
 }
 
 function copySelectedDomains() {
+    console.log('copySelectedDomains called');
     var rows = getSelectedRows();
+    console.log('Selected rows:', rows.length);
     if (rows.length === 0) {
         alert('Aucun site selectionne.');
         return;
@@ -120,6 +122,7 @@ function copySelectedDomains() {
     var text = rows.map(function(tr) {
         return tr.dataset.domain;
     }).join('\n');
+    console.log('Text to copy:', text);
     copyToClipboard(text);
 }
 
