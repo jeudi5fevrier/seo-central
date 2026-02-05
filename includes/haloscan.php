@@ -15,15 +15,76 @@ class Haloscan
     }
 
     /**
-     * Etape 1 : Recupere les noms des top KW d'un domaine via pageBestKeywords.
-     * Retourne un array de strings (noms de KW).
+     * Recupere les top KW d'un domaine via /domains/keywords.
+     * Tente d'abord sans filtre KW, puis via pageBestKeywords en fallback.
      */
-    public function getTopKeywordNames(string $domain): array
+    public function refreshSite(string $domain): array
+    {
+        // Tentative 1 : appel direct sans filtre de keywords
+        $response = $this->post('/domains/keywords', [
+            'input' => $domain,
+            'keywords' => [],
+            'lineCount' => 10,
+            'order' => 'desc',
+            'order_by' => 'traffic',
+            'mode' => 'root',
+        ]);
+
+        // Si ca echoue, tentative 2 : via pageBestKeywords
+        if (!$response || empty($response['results'])) {
+            appLog('INFO', "Tentative 1 echouee pour $domain, essai via pageBestKeywords");
+
+            $kwNames = $this->getTopKeywordNames($domain);
+            if (!empty($kwNames)) {
+                $response = $this->post('/domains/keywords', [
+                    'input' => $domain,
+                    'keywords' => $kwNames,
+                    'lineCount' => 10,
+                    'order' => 'desc',
+                    'order_by' => 'traffic',
+                    'mode' => 'root',
+                ]);
+            }
+        }
+
+        if (!$response || empty($response['results'])) {
+            appLog('INFO', "Aucun resultat pour $domain apres toutes les tentatives");
+            return [
+                'kw_count' => 0,
+                'traffic' => 0,
+                'keywords' => [],
+            ];
+        }
+
+        $keywords = [];
+        $totalTraffic = 0;
+        foreach ($response['results'] as $r) {
+            $kw = [
+                'keyword' => $r['keyword'] ?? '',
+                'position' => (int)($r['position'] ?? 0),
+                'volume' => (int)($r['volume'] ?? 0),
+                'traffic' => (float)($r['traffic'] ?? 0),
+            ];
+            $keywords[] = $kw;
+            $totalTraffic += $kw['traffic'];
+        }
+
+        return [
+            'kw_count' => count($keywords),
+            'traffic' => $totalTraffic,
+            'keywords' => $keywords,
+        ];
+    }
+
+    /**
+     * Fallback : recupere les noms des top KW via pageBestKeywords.
+     */
+    private function getTopKeywordNames(string $domain): array
     {
         $response = $this->post('/domains/pageBestKeywords', [
             'input' => [$domain],
             'lineCount' => 10,
-            'strategy' => 'only_active',
+            'strategy' => 'both',
         ]);
 
         if (!$response || empty($response['results'])) {
@@ -35,75 +96,8 @@ class Haloscan
             return [];
         }
 
-        // Parse la string CSV : "kw1, kw2, kw3"
         $keywords = array_map('trim', explode(',', $bestKw));
         return array_filter($keywords, fn($kw) => $kw !== '');
-    }
-
-    /**
-     * Etape 2 : Recupere les donnees detaillees pour des KW specifiques sur un domaine.
-     * Retourne un array de ['keyword', 'position', 'volume', 'traffic'].
-     */
-    public function getKeywordDetails(string $domain, array $keywords): array
-    {
-        if (empty($keywords)) {
-            return [];
-        }
-
-        $response = $this->post('/domains/keywords', [
-            'input' => $domain,
-            'keywords' => $keywords,
-            'lineCount' => 10,
-            'order' => 'desc',
-            'order_by' => 'traffic',
-            'mode' => 'root',
-        ]);
-
-        if (!$response || empty($response['results'])) {
-            return [];
-        }
-
-        $results = [];
-        foreach ($response['results'] as $r) {
-            $results[] = [
-                'keyword' => $r['keyword'] ?? '',
-                'position' => (int)($r['position'] ?? 0),
-                'volume' => (int)($r['volume'] ?? 0),
-                'traffic' => (float)($r['traffic'] ?? 0),
-            ];
-        }
-
-        return $results;
-    }
-
-    /**
-     * Enchaine les 2 etapes : decouvre les top KW puis recupere les details.
-     * Retourne ['kw_count' => int, 'traffic' => float, 'keywords' => array].
-     */
-    public function refreshSite(string $domain): array
-    {
-        $kwNames = $this->getTopKeywordNames($domain);
-
-        if (empty($kwNames)) {
-            return [
-                'kw_count' => 0,
-                'traffic' => 0,
-                'keywords' => [],
-            ];
-        }
-
-        $keywords = $this->getKeywordDetails($domain, $kwNames);
-
-        $totalTraffic = 0;
-        foreach ($keywords as $kw) {
-            $totalTraffic += $kw['traffic'];
-        }
-
-        return [
-            'kw_count' => count($keywords),
-            'traffic' => $totalTraffic,
-            'keywords' => $keywords,
-        ];
     }
 
     /**
@@ -139,7 +133,7 @@ class Haloscan
             return null;
         }
 
-        if ($httpCode !== 200) {
+        if ($httpCode < 200 || $httpCode >= 300) {
             appLog('ERROR', "HTTP $httpCode sur $endpoint", ['response' => mb_substr($response, 0, 500)]);
             return null;
         }
