@@ -33,10 +33,10 @@ class Haloscan
         $totalKwCount = 0;
         $totalTraffic = 0;
 
-        if ($overview && !empty($overview['results'])) {
-            $metrics = $overview['results'][0] ?? [];
-            $totalKwCount = (int)($metrics['organic_keywords'] ?? $metrics['total_keyword_count'] ?? $metrics['keywords'] ?? 0);
-            $totalTraffic = (float)($metrics['organic_traffic'] ?? $metrics['traffic'] ?? 0);
+        if ($overview) {
+            $stats = $overview['metrics']['stats'] ?? [];
+            $totalKwCount = (int)($stats['total_keyword_count'] ?? 0);
+            $totalTraffic = (float)($stats['total_traffic'] ?? 0);
             appLog('INFO', "Overview pour $domain", ['kw_count' => $totalKwCount, 'traffic' => $totalTraffic]);
         }
 
