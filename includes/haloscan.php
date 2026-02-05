@@ -15,45 +15,63 @@ class Haloscan
     }
 
     /**
-     * Recupere les top KW d'un domaine via /domains/positions.
-     * Retourne les 10 meilleurs KW par trafic + le total de KW du domaine.
+     * Recupere les stats d'un domaine via 2 appels :
+     * - /domains/overview pour le trafic organique total et le nombre de KW
+     * - /domains/positions pour le detail des top 10 KW
      */
     public function refreshSite(string $domain): array
     {
-        $response = $this->post('/domains/positions', [
+        // 1. Overview : stats globales du domaine (trafic organique, nb KW)
+        $overview = $this->post('/domains/overview', [
             'input' => $domain,
             'mode' => 'root',
-            'lineCount' => 500,
+            'requested_data' => ['metrics'],
+        ]);
+
+        appLog('API', "Overview brut pour $domain", ['response' => $overview]);
+
+        $totalKwCount = 0;
+        $totalTraffic = 0;
+
+        if ($overview && !empty($overview['results'])) {
+            $metrics = $overview['results'][0] ?? [];
+            $totalKwCount = (int)($metrics['organic_keywords'] ?? $metrics['total_keyword_count'] ?? $metrics['keywords'] ?? 0);
+            $totalTraffic = (float)($metrics['organic_traffic'] ?? $metrics['traffic'] ?? 0);
+            appLog('INFO', "Overview pour $domain", ['kw_count' => $totalKwCount, 'traffic' => $totalTraffic]);
+        }
+
+        // 2. Positions : top 10 KW par trafic (pour la page detail)
+        $positions = $this->post('/domains/positions', [
+            'input' => $domain,
+            'mode' => 'root',
+            'lineCount' => 10,
             'order_by' => 'traffic',
             'order' => 'desc',
         ]);
 
-        if (!$response || empty($response['results'])) {
-            appLog('INFO', "Aucun resultat /domains/positions pour $domain");
-            return [
-                'kw_count' => 0,
-                'traffic' => 0,
-                'keywords' => [],
-            ];
-        }
-
         $keywords = [];
-        $totalTraffic = 0;
-        foreach ($response['results'] as $r) {
-            $kw = [
-                'keyword' => $r['keyword'] ?? '',
-                'position' => (int)($r['position'] ?? 0),
-                'volume' => (int)($r['volume'] ?? 0),
-                'traffic' => (float)($r['traffic'] ?? 0),
-            ];
-            $keywords[] = $kw;
-            $totalTraffic += $kw['traffic'];
+        if ($positions && !empty($positions['results'])) {
+            foreach ($positions['results'] as $r) {
+                $keywords[] = [
+                    'keyword' => $r['keyword'] ?? '',
+                    'position' => (int)($r['position'] ?? 0),
+                    'volume' => (int)($r['volume'] ?? 0),
+                    'traffic' => (float)($r['traffic'] ?? 0),
+                ];
+            }
+
+            // Fallback : si l'overview n'a pas marche, utiliser les donnees de positions
+            if ($totalKwCount === 0) {
+                $totalKwCount = (int)($positions['total_keyword_count'] ?? count($keywords));
+            }
+            if ($totalTraffic === 0) {
+                foreach ($keywords as $kw) {
+                    $totalTraffic += $kw['traffic'];
+                }
+            }
         }
 
-        // total_keyword_count = nombre reel de KW du domaine (pas juste les 10 retournes)
-        $totalKwCount = (int)($response['total_keyword_count'] ?? count($keywords));
-
-        appLog('INFO', "Donnees pour $domain", ['total_kw' => $totalKwCount, 'top10_traffic' => $totalTraffic, 'results' => count($keywords)]);
+        appLog('INFO', "Donnees finales pour $domain", ['kw_count' => $totalKwCount, 'traffic' => $totalTraffic, 'keywords' => count($keywords)]);
 
         return [
             'kw_count' => $totalKwCount,
