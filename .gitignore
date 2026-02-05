@@ -1,0 +1,4 @@
+config.php
+data/seo-central.db
+data/*.db
+.DS_Store

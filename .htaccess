@@ -1,0 +1,7 @@
+RewriteEngine On
+
+# Bloquer l'acces direct aux fichiers includes
+RewriteRule ^includes/ - [F,L]
+
+# Bloquer l'acces au dossier data
+RewriteRule ^data/ - [F,L]
