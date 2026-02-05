@@ -23,7 +23,7 @@ class Haloscan
         $response = $this->post('/domains/positions', [
             'input' => $domain,
             'mode' => 'root',
-            'lineCount' => 10,
+            'lineCount' => 500,
             'order_by' => 'traffic',
             'order' => 'desc',
         ]);
