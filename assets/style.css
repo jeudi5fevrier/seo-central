@@ -439,3 +439,30 @@ a {
     font-size: 13px;
     margin-left: 8px;
 }
+
+/* --- Logs --- */
+.log-container {
+    background: #1a1a1a;
+    color: #d4d4d4;
+    padding: 16px;
+    font-family: "SF Mono", "Consolas", "Monaco", monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    max-height: 600px;
+    overflow-y: auto;
+    border: 1px solid #333;
+}
+
+.log-line {
+    padding: 2px 0;
+    border-bottom: 1px solid #2a2a2a;
+    word-break: break-all;
+}
+
+.log-error {
+    color: #f87171;
+}
+
+.log-api {
+    color: #60a5fa;
+}

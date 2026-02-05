@@ -18,6 +18,7 @@ $currentPage = basename($_SERVER['SCRIPT_NAME'], '.php');
                 <a href="<?= BASE_URL ?>/dashboard.php" class="<?= $currentPage === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
                 <a href="<?= BASE_URL ?>/add.php" class="<?= $currentPage === 'add' ? 'active' : '' ?>">Ajouter</a>
                 <a href="<?= BASE_URL ?>/keywords.php" class="<?= $currentPage === 'keywords' ? 'active' : '' ?>">Mots-cles</a>
+                <a href="<?= BASE_URL ?>/logs.php" class="<?= $currentPage === 'logs' ? 'active' : '' ?>">Logs</a>
                 <a href="<?= BASE_URL ?>/logout.php" class="nav-logout">Deconnexion</a>
             </nav>
         </div>

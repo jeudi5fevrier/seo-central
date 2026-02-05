@@ -1,6 +1,28 @@
 <?php
 
 /**
+ * Ecrit une ligne dans le fichier de log.
+ * Niveaux : INFO, ERROR, API
+ */
+function appLog(string $level, string $message, array $context = []): void
+{
+    $logDir = __DIR__ . '/../data';
+    $logFile = $logDir . '/app.log';
+
+    if (!is_dir($logDir)) {
+        mkdir($logDir, 0755, true);
+    }
+
+    $line = date('Y-m-d H:i:s') . ' [' . $level . '] ' . $message;
+    if (!empty($context)) {
+        $line .= ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+    $line .= PHP_EOL;
+
+    file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
+}
+
+/**
  * Extrait le root domain d'une URL ou d'un domaine saisi.
  * Supprime protocole, www, chemin, etc.
  */

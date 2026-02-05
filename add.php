@@ -108,7 +108,9 @@ function addSite(PDO $db, Haloscan $haloscan, string $domain, int $thematicId): 
     }
 
     // Appel API Haloscan
+    appLog('INFO', "Ajout du site $domain : appel API Haloscan");
     $apiData = $haloscan->refreshSite($domain);
+    appLog('INFO', "Resultat API pour $domain", ['kw_count' => $apiData['kw_count'], 'traffic' => $apiData['traffic'], 'keywords' => count($apiData['keywords'])]);
 
     $now = date('c');
 

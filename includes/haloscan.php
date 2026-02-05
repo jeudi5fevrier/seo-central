@@ -114,6 +114,8 @@ class Haloscan
         $url = $this->baseUrl . $endpoint;
         $payload = json_encode($data);
 
+        appLog('API', "Requete $endpoint", ['url' => $url, 'body' => $data]);
+
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
@@ -132,16 +134,23 @@ class Haloscan
         $error = curl_error($ch);
         curl_close($ch);
 
-        if ($error || $httpCode !== 200) {
-            error_log("Haloscan API error: HTTP $httpCode - $error - URL: $url");
+        if ($error) {
+            appLog('ERROR', "cURL error sur $endpoint", ['curl_error' => $error, 'http_code' => $httpCode]);
+            return null;
+        }
+
+        if ($httpCode !== 200) {
+            appLog('ERROR', "HTTP $httpCode sur $endpoint", ['response' => mb_substr($response, 0, 500)]);
             return null;
         }
 
         $decoded = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log("Haloscan API JSON decode error: " . json_last_error_msg());
+            appLog('ERROR', "JSON decode error sur $endpoint", ['json_error' => json_last_error_msg(), 'raw' => mb_substr($response, 0, 500)]);
             return null;
         }
+
+        appLog('API', "Reponse $endpoint OK", ['result_count' => count($decoded['results'] ?? [])]);
 
         return $decoded;
     }
