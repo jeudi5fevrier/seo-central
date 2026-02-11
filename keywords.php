@@ -120,8 +120,8 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<form method="GET" class="filters-form">
-    <div class="filters">
+<div class="filters">
+    <form method="GET" class="filters-inline">
         <select name="thematic" onchange="this.form.submit()">
             <option value="0">Thematique</option>
             <?php foreach ($thematics as $t): ?>
@@ -129,25 +129,23 @@ require_once __DIR__ . '/includes/header.php';
             <?php endforeach; ?>
         </select>
 
-        <div class="filter-dropdown">
-            <button type="button" class="filter-dropdown-btn" onclick="toggleDropdown('vol-dropdown')">
-                Volume <?= ($filterVolumeMin !== null || $filterVolumeMax !== null) ? '(' . ($filterVolumeMin ?? '0') . '-' . ($filterVolumeMax ?? '∞') . ')' : '▼' ?>
-            </button>
-            <div class="filter-dropdown-content" id="vol-dropdown">
-                <label>Min <input type="number" name="vol_min" value="<?= $filterVolumeMin ?>"></label>
-                <label>Max <input type="number" name="vol_max" value="<?= $filterVolumeMax ?>"></label>
-            </div>
-        </div>
+        <select name="vol_min" onchange="this.form.submit()">
+            <option value="">Volume min</option>
+            <option value="100" <?= $filterVolumeMin === 100 ? 'selected' : '' ?>>100+</option>
+            <option value="500" <?= $filterVolumeMin === 500 ? 'selected' : '' ?>>500+</option>
+            <option value="1000" <?= $filterVolumeMin === 1000 ? 'selected' : '' ?>>1 000+</option>
+            <option value="5000" <?= $filterVolumeMin === 5000 ? 'selected' : '' ?>>5 000+</option>
+            <option value="10000" <?= $filterVolumeMin === 10000 ? 'selected' : '' ?>>10 000+</option>
+        </select>
 
-        <div class="filter-dropdown">
-            <button type="button" class="filter-dropdown-btn" onclick="toggleDropdown('pos-dropdown')">
-                Position <?= ($filterPosMin !== null || $filterPosMax !== null) ? '(' . ($filterPosMin ?? '1') . '-' . ($filterPosMax ?? '∞') . ')' : '▼' ?>
-            </button>
-            <div class="filter-dropdown-content" id="pos-dropdown">
-                <label>Min <input type="number" name="pos_min" value="<?= $filterPosMin ?>"></label>
-                <label>Max <input type="number" name="pos_max" value="<?= $filterPosMax ?>"></label>
-            </div>
-        </div>
+        <select name="pos_max" onchange="this.form.submit()">
+            <option value="">Position max</option>
+            <option value="3" <?= $filterPosMax === 3 ? 'selected' : '' ?>>Top 3</option>
+            <option value="10" <?= $filterPosMax === 10 ? 'selected' : '' ?>>Top 10</option>
+            <option value="20" <?= $filterPosMax === 20 ? 'selected' : '' ?>>Top 20</option>
+            <option value="50" <?= $filterPosMax === 50 ? 'selected' : '' ?>>Top 50</option>
+            <option value="100" <?= $filterPosMax === 100 ? 'selected' : '' ?>>Top 100</option>
+        </select>
 
         <select name="per_page" onchange="this.form.submit()">
             <?php foreach ($perPageOptions as $opt): ?>
@@ -155,10 +153,13 @@ require_once __DIR__ . '/includes/header.php';
             <?php endforeach; ?>
         </select>
 
-        <button type="submit" class="btn btn-sm">OK</button>
-        <a href="<?= BASE_URL ?>/keywords.php" class="btn btn-sm">Reset</a>
+        <?php if ($filterThematic || $filterVolumeMin || $filterPosMax): ?>
+            <a href="<?= BASE_URL ?>/keywords.php" class="btn btn-sm">Reset</a>
+        <?php endif; ?>
+    </form>
 
-        <?php if ($totalPages > 1): ?>
+    <?php if ($totalPages > 1): ?>
+        <span class="pagination">
             <?php if ($page > 1): ?>
                 <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>" class="btn btn-sm">&laquo;</a>
             <?php endif; ?>
@@ -166,26 +167,9 @@ require_once __DIR__ . '/includes/header.php';
             <?php if ($page < $totalPages): ?>
                 <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>" class="btn btn-sm">&raquo;</a>
             <?php endif; ?>
-        <?php endif; ?>
-    </div>
-</form>
-
-<script>
-function toggleDropdown(id) {
-    const dropdown = document.getElementById(id);
-    const allDropdowns = document.querySelectorAll('.filter-dropdown-content');
-    allDropdowns.forEach(d => {
-        if (d.id !== id) d.classList.remove('show');
-    });
-    dropdown.classList.toggle('show');
-}
-
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.filter-dropdown')) {
-        document.querySelectorAll('.filter-dropdown-content').forEach(d => d.classList.remove('show'));
-    }
-});
-</script>
+        </span>
+    <?php endif; ?>
+</div>
 
 <table class="data-table" id="keywords-table">
     <thead>
