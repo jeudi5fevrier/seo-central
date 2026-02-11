@@ -129,13 +129,25 @@ require_once __DIR__ . '/includes/header.php';
             <?php endforeach; ?>
         </select>
 
-        <span class="filter-label">Vol:</span>
-        <input type="number" name="vol_min" placeholder="min" value="<?= $filterVolumeMin ?>" class="filter-input-sm">
-        <input type="number" name="vol_max" placeholder="max" value="<?= $filterVolumeMax ?>" class="filter-input-sm">
+        <div class="filter-dropdown">
+            <button type="button" class="filter-dropdown-btn" onclick="toggleDropdown('vol-dropdown')">
+                Volume <?= ($filterVolumeMin !== null || $filterVolumeMax !== null) ? '(' . ($filterVolumeMin ?? '0') . '-' . ($filterVolumeMax ?? '∞') . ')' : '▼' ?>
+            </button>
+            <div class="filter-dropdown-content" id="vol-dropdown">
+                <label>Min <input type="number" name="vol_min" value="<?= $filterVolumeMin ?>"></label>
+                <label>Max <input type="number" name="vol_max" value="<?= $filterVolumeMax ?>"></label>
+            </div>
+        </div>
 
-        <span class="filter-label">Pos:</span>
-        <input type="number" name="pos_min" placeholder="min" value="<?= $filterPosMin ?>" class="filter-input-sm">
-        <input type="number" name="pos_max" placeholder="max" value="<?= $filterPosMax ?>" class="filter-input-sm">
+        <div class="filter-dropdown">
+            <button type="button" class="filter-dropdown-btn" onclick="toggleDropdown('pos-dropdown')">
+                Position <?= ($filterPosMin !== null || $filterPosMax !== null) ? '(' . ($filterPosMin ?? '1') . '-' . ($filterPosMax ?? '∞') . ')' : '▼' ?>
+            </button>
+            <div class="filter-dropdown-content" id="pos-dropdown">
+                <label>Min <input type="number" name="pos_min" value="<?= $filterPosMin ?>"></label>
+                <label>Max <input type="number" name="pos_max" value="<?= $filterPosMax ?>"></label>
+            </div>
+        </div>
 
         <select name="per_page" onchange="this.form.submit()">
             <?php foreach ($perPageOptions as $opt): ?>
@@ -157,6 +169,23 @@ require_once __DIR__ . '/includes/header.php';
         <?php endif; ?>
     </div>
 </form>
+
+<script>
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    const allDropdowns = document.querySelectorAll('.filter-dropdown-content');
+    allDropdowns.forEach(d => {
+        if (d.id !== id) d.classList.remove('show');
+    });
+    dropdown.classList.toggle('show');
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.filter-dropdown')) {
+        document.querySelectorAll('.filter-dropdown-content').forEach(d => d.classList.remove('show'));
+    }
+});
+</script>
 
 <table class="data-table" id="keywords-table">
     <thead>
