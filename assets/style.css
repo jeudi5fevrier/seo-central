@@ -227,9 +227,10 @@ a {
 /* --- Filters --- */
 .filters {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     align-items: center;
     margin-bottom: 16px;
+    flex-wrap: wrap;
 }
 
 .filters select {
@@ -522,11 +523,12 @@ a {
 }
 
 .filter-input-sm {
-    width: 70px;
-    padding: 5px 8px;
+    width: 50px;
+    padding: 4px 6px;
     border: 1px solid #ccc;
-    font-size: 13px;
+    font-size: 12px;
     font-family: inherit;
+    text-align: center;
 }
 
 .filter-input-sm:focus {
@@ -534,9 +536,14 @@ a {
     border-color: #666;
 }
 
+.filter-input-sm::placeholder {
+    font-size: 11px;
+}
+
 .filter-separator-dash {
     color: #999;
-    margin: 0 4px;
+    margin: 0 2px;
+    font-size: 11px;
 }
 
 /* --- Pagination --- */
