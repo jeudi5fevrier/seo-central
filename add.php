@@ -42,10 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     continue;
                 }
 
-                // Format attendu : domaine.com | slug-thematique
-                $parts = array_map('trim', explode('|', $line));
+                // Format attendu : domaine.com[TAB]slug-thematique
+                $parts = array_map('trim', preg_split('/\t+/', $line));
                 if (count($parts) !== 2) {
-                    $errors[] = "Ligne " . ($lineNum + 1) . " : format invalide (attendu: domaine | slug)";
+                    $errors[] = "Ligne " . ($lineNum + 1) . " : format invalide (attendu: domaine[TAB]slug)";
                     continue;
                 }
 
@@ -193,8 +193,8 @@ require_once __DIR__ . '/includes/header.php';
             <?= csrfField() ?>
             <input type="hidden" name="action" value="add_bulk">
             <div class="form-group">
-                <label for="bulk_data">Un site par ligne (format : domaine | slug)</label>
-                <textarea id="bulk_data" name="bulk_data" placeholder="exemple.com | fr-finance-immobilier&#10;autresite.fr | fr-sport&#10;monsite.com | fr-cuisine" rows="10" required></textarea>
+                <label for="bulk_data">Un site par ligne (format : domaine[TAB]slug)</label>
+                <textarea id="bulk_data" name="bulk_data" placeholder="exemple.com&#9;fr-finance-immobilier&#10;autresite.fr&#9;fr-sport&#10;monsite.com&#9;fr-cuisine" rows="10" required></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Importer</button>
         </form>
