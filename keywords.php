@@ -122,50 +122,38 @@ require_once __DIR__ . '/includes/header.php';
 
 <form method="GET" class="filters-form">
     <div class="filters">
-        <span class="filter-label">Thematique :</span>
         <select name="thematic" onchange="this.form.submit()">
-            <option value="0">Toutes</option>
+            <option value="0">Thematique</option>
             <?php foreach ($thematics as $t): ?>
-                <option value="<?= $t['id'] ?>" <?= $filterThematic === $t['id'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($t['name']) ?>
-                </option>
+                <option value="<?= $t['id'] ?>" <?= $filterThematic === $t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['name']) ?></option>
             <?php endforeach; ?>
         </select>
 
-        <span class="filter-label">Volume :</span>
-        <input type="number" name="vol_min" placeholder="Min" value="<?= $filterVolumeMin ?>" class="filter-input-sm">
-        <span class="filter-separator-dash">-</span>
-        <input type="number" name="vol_max" placeholder="Max" value="<?= $filterVolumeMax ?>" class="filter-input-sm">
+        <span class="filter-label">Vol:</span>
+        <input type="number" name="vol_min" placeholder="min" value="<?= $filterVolumeMin ?>" class="filter-input-sm">
+        <input type="number" name="vol_max" placeholder="max" value="<?= $filterVolumeMax ?>" class="filter-input-sm">
 
-        <span class="filter-label">Position :</span>
-        <input type="number" name="pos_min" placeholder="Min" value="<?= $filterPosMin ?>" class="filter-input-sm">
-        <span class="filter-separator-dash">-</span>
-        <input type="number" name="pos_max" placeholder="Max" value="<?= $filterPosMax ?>" class="filter-input-sm">
+        <span class="filter-label">Pos:</span>
+        <input type="number" name="pos_min" placeholder="min" value="<?= $filterPosMin ?>" class="filter-input-sm">
+        <input type="number" name="pos_max" placeholder="max" value="<?= $filterPosMax ?>" class="filter-input-sm">
 
-        <button type="submit" class="btn btn-sm">Filtrer</button>
-        <a href="<?= BASE_URL ?>/keywords.php" class="btn btn-sm">Reset</a>
-    </div>
-
-    <div class="filters">
-        <span class="filter-label">Afficher :</span>
         <select name="per_page" onchange="this.form.submit()">
             <?php foreach ($perPageOptions as $opt): ?>
-                <option value="<?= $opt ?>" <?= $perPage === $opt ? 'selected' : '' ?>><?= $opt ?></option>
+                <option value="<?= $opt ?>" <?= $perPage === $opt ? 'selected' : '' ?>><?= $opt ?>/page</option>
             <?php endforeach; ?>
         </select>
-        <span class="text-muted text-small">par page</span>
+
+        <button type="submit" class="btn btn-sm">OK</button>
+        <a href="<?= BASE_URL ?>/keywords.php" class="btn btn-sm">Reset</a>
 
         <?php if ($totalPages > 1): ?>
-            <span class="filter-separator"></span>
-            <span class="pagination">
-                <?php if ($page > 1): ?>
-                    <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>" class="btn btn-sm">&laquo; Prec</a>
-                <?php endif; ?>
-                <span class="page-info">Page <?= $page ?> / <?= $totalPages ?></span>
-                <?php if ($page < $totalPages): ?>
-                    <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>" class="btn btn-sm">Suiv &raquo;</a>
-                <?php endif; ?>
-            </span>
+            <?php if ($page > 1): ?>
+                <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>" class="btn btn-sm">&laquo;</a>
+            <?php endif; ?>
+            <span class="page-info"><?= $page ?>/<?= $totalPages ?></span>
+            <?php if ($page < $totalPages): ?>
+                <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>" class="btn btn-sm">&raquo;</a>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 </form>

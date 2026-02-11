@@ -227,10 +227,10 @@ a {
 /* --- Filters --- */
 .filters {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
+    margin-bottom: 10px;
+    flex-wrap: nowrap;
 }
 
 .filters select {
