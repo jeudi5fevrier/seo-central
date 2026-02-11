@@ -6,7 +6,8 @@ var BASE_URL = '';
 (function() {
     var link = document.querySelector('link[rel="stylesheet"]');
     if (link && link.href) {
-        BASE_URL = link.href.replace('/assets/style.css', '');
+        // Supprimer /assets/style.css et tout ce qui suit (?v=X)
+        BASE_URL = link.href.replace(/\/assets\/style\.css.*$/, '');
     }
 })();
 
