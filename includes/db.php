@@ -26,7 +26,12 @@ function getDb(): PDO
     if ($isNew) {
         initSchema($pdo);
     } else {
-        migrateSchema($pdo);
+        // Migration une seule fois (check via fichier flag)
+        $migrationFlag = dirname(DB_PATH) . '/.migrated_v2';
+        if (!file_exists($migrationFlag)) {
+            migrateSchema($pdo);
+            file_put_contents($migrationFlag, date('c'));
+        }
     }
 
     return $pdo;
