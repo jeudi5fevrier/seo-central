@@ -199,7 +199,7 @@ require_once __DIR__ . '/includes/header.php';
             <button type="submit" class="btn btn-primary">Importer</button>
         </form>
         <p class="text-muted text-small mt-8">
-            Slugs disponibles : <?= implode(', ', array_map(fn($t) => $t['slug'], $thematics)) ?>
+            Slugs disponibles : <?= implode(', ', array_filter(array_map(fn($t) => $t['slug'] ?? '', $thematics))) ?>
         </p>
     </div>
 </div>
