@@ -25,9 +25,49 @@ function getDb(): PDO
 
     if ($isNew) {
         initSchema($pdo);
+    } else {
+        migrateSchema($pdo);
     }
 
     return $pdo;
+}
+
+function migrateSchema(PDO $pdo): void
+{
+    // Migration: ajouter la colonne slug si elle n'existe pas
+    $cols = $pdo->query("PRAGMA table_info(thematics)")->fetchAll();
+    $hasSlug = false;
+    foreach ($cols as $col) {
+        if ($col['name'] === 'slug') {
+            $hasSlug = true;
+            break;
+        }
+    }
+
+    if (!$hasSlug) {
+        $pdo->exec('ALTER TABLE thematics ADD COLUMN slug TEXT');
+
+        // Mapping name -> slug
+        $slugMap = [
+            'Animaux' => 'fr-animaux',
+            'Cuisine' => 'fr-cuisine',
+            'Entreprise' => 'fr-entreprise',
+            'Finance / immobilier' => 'fr-finance-immobilier',
+            'Generaliste' => 'fr-generaliste',
+            'Informatique' => 'fr-informatique',
+            'Maison' => 'fr-maison',
+            'Mode / Femme' => 'fr-mode-femme',
+            'Sante' => 'fr-sante',
+            'Sport' => 'fr-sport',
+            'Tourisme' => 'fr-tourisme',
+            'Vehicule' => 'fr-vehicule',
+        ];
+
+        $stmt = $pdo->prepare('UPDATE thematics SET slug = :slug WHERE name = :name');
+        foreach ($slugMap as $name => $slug) {
+            $stmt->execute(['name' => $name, 'slug' => $slug]);
+        }
+    }
 }
 
 function initSchema(PDO $pdo): void
@@ -35,7 +75,8 @@ function initSchema(PDO $pdo): void
     $pdo->exec('
         CREATE TABLE IF NOT EXISTS thematics (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE
+            name TEXT NOT NULL UNIQUE,
+            slug TEXT NOT NULL UNIQUE
         )
     ');
 
@@ -70,22 +111,22 @@ function initSchema(PDO $pdo): void
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_site_keywords_site ON site_keywords(site_id)');
 
     $thematics = [
-        'Animaux',
-        'Mode / Femme',
-        'Sport',
-        'Finance / immobilier',
-        'Entreprise',
-        'Sante',
-        'Cuisine',
-        'Maison',
-        'Vehicule',
-        'Generaliste',
-        'Informatique',
-        'Tourisme',
+        ['name' => 'Animaux', 'slug' => 'fr-animaux'],
+        ['name' => 'Cuisine', 'slug' => 'fr-cuisine'],
+        ['name' => 'Entreprise', 'slug' => 'fr-entreprise'],
+        ['name' => 'Finance / immobilier', 'slug' => 'fr-finance-immobilier'],
+        ['name' => 'Generaliste', 'slug' => 'fr-generaliste'],
+        ['name' => 'Informatique', 'slug' => 'fr-informatique'],
+        ['name' => 'Maison', 'slug' => 'fr-maison'],
+        ['name' => 'Mode / Femme', 'slug' => 'fr-mode-femme'],
+        ['name' => 'Sante', 'slug' => 'fr-sante'],
+        ['name' => 'Sport', 'slug' => 'fr-sport'],
+        ['name' => 'Tourisme', 'slug' => 'fr-tourisme'],
+        ['name' => 'Vehicule', 'slug' => 'fr-vehicule'],
     ];
 
-    $stmt = $pdo->prepare('INSERT OR IGNORE INTO thematics (name) VALUES (:name)');
-    foreach ($thematics as $name) {
-        $stmt->execute(['name' => $name]);
+    $stmt = $pdo->prepare('INSERT OR IGNORE INTO thematics (name, slug) VALUES (:name, :slug)');
+    foreach ($thematics as $t) {
+        $stmt->execute(['name' => $t['name'], 'slug' => $t['slug']]);
     }
 }

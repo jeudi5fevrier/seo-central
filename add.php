@@ -7,7 +7,7 @@ $db = getDb();
 $pageTitle = 'Ajouter des sites - ' . APP_NAME;
 
 // Recuperer les thematiques
-$thematics = $db->query('SELECT id, name FROM thematics ORDER BY name')->fetchAll();
+$thematics = $db->query('SELECT id, name, slug FROM thematics ORDER BY name')->fetchAll();
 
 $messages = [];
 
@@ -42,28 +42,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     continue;
                 }
 
-                // Format attendu : domaine.com | Thematique
+                // Format attendu : domaine.com | slug-thematique
                 $parts = array_map('trim', explode('|', $line));
                 if (count($parts) !== 2) {
-                    $errors[] = "Ligne " . ($lineNum + 1) . " : format invalide (attendu: domaine | thematique)";
+                    $errors[] = "Ligne " . ($lineNum + 1) . " : format invalide (attendu: domaine | slug)";
                     continue;
                 }
 
                 $domain = extractRootDomain($parts[0]);
-                $thematicName = $parts[1];
+                $thematicSlug = $parts[1];
 
                 if (empty($domain)) {
                     $errors[] = "Ligne " . ($lineNum + 1) . " : domaine invalide";
                     continue;
                 }
 
-                // Trouver la thematique
-                $stmt = $db->prepare('SELECT id FROM thematics WHERE name = :name COLLATE NOCASE');
-                $stmt->execute(['name' => $thematicName]);
+                // Trouver la thematique par slug
+                $stmt = $db->prepare('SELECT id FROM thematics WHERE slug = :slug COLLATE NOCASE');
+                $stmt->execute(['slug' => $thematicSlug]);
                 $thematic = $stmt->fetch();
 
                 if (!$thematic) {
-                    $errors[] = "Ligne " . ($lineNum + 1) . " : thematique inconnue \"" . htmlspecialchars($thematicName) . "\"";
+                    $errors[] = "Ligne " . ($lineNum + 1) . " : slug inconnu \"" . htmlspecialchars($thematicSlug) . "\"";
                     continue;
                 }
 
@@ -193,13 +193,13 @@ require_once __DIR__ . '/includes/header.php';
             <?= csrfField() ?>
             <input type="hidden" name="action" value="add_bulk">
             <div class="form-group">
-                <label for="bulk_data">Un site par ligne (format : domaine | thematique)</label>
-                <textarea id="bulk_data" name="bulk_data" placeholder="exemple.com | Finance / immobilier&#10;autresite.fr | Sport&#10;monsite.com | Cuisine" rows="10" required></textarea>
+                <label for="bulk_data">Un site par ligne (format : domaine | slug)</label>
+                <textarea id="bulk_data" name="bulk_data" placeholder="exemple.com | fr-finance-immobilier&#10;autresite.fr | fr-sport&#10;monsite.com | fr-cuisine" rows="10" required></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Importer</button>
         </form>
         <p class="text-muted text-small mt-8">
-            Thematiques disponibles : <?= implode(', ', array_map(fn($t) => $t['name'], $thematics)) ?>
+            Slugs disponibles : <?= implode(', ', array_map(fn($t) => $t['slug'], $thematics)) ?>
         </p>
     </div>
 </div>
