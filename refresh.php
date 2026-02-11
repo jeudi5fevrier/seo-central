@@ -30,6 +30,27 @@ if ($action === 'refresh_all') {
     exit;
 }
 
+if ($action === 'refresh_selected') {
+    $siteIds = $input['site_ids'] ?? [];
+    if (empty($siteIds) || !is_array($siteIds)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Aucun site selectionne']);
+        exit;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($siteIds), '?'));
+    $stmt = $db->prepare("SELECT id, domain FROM sites WHERE id IN ($placeholders) ORDER BY id");
+    $stmt->execute($siteIds);
+    $sites = $stmt->fetchAll();
+
+    foreach ($sites as $site) {
+        $result = refreshOneSite($db, $haloscan, $site['id'], $site['domain']);
+        $results[] = $result;
+    }
+    echo json_encode(['status' => 'ok', 'refreshed' => count($results), 'results' => $results]);
+    exit;
+}
+
 if ($action === 'refresh_site' && $siteId > 0) {
     $stmt = $db->prepare('SELECT id, domain FROM sites WHERE id = :id');
     $stmt->execute(['id' => $siteId]);

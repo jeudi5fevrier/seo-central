@@ -49,6 +49,7 @@ require_once __DIR__ . '/includes/header.php';
     </select>
     <span class="text-muted text-small"><?= count($sites) ?> site<?= count($sites) > 1 ? 's' : '' ?></span>
     <span class="filter-separator"></span>
+    <button class="btn btn-sm" onclick="refreshSelected()">Rafraichir selection</button>
     <button class="btn btn-sm" onclick="copySelectedDomains()">Copier NDD</button>
     <button class="btn btn-sm" onclick="copySelectedAll()">Copier tout</button>
 </div>
@@ -77,7 +78,7 @@ require_once __DIR__ . '/includes/header.php';
                     $deltaKw = formatDelta($site['current_kw_count'], $site['initial_kw_count']);
                     $deltaTraffic = formatDelta($site['current_traffic'], $site['initial_traffic']);
                 ?>
-                <tr data-domain="<?= htmlspecialchars($site['domain']) ?>" data-thematic="<?= htmlspecialchars($site['thematic_name']) ?>" data-kw="<?= $site['current_kw_count'] ?>" data-traffic="<?= $site['current_traffic'] ?>">
+                <tr data-id="<?= $site['id'] ?>" data-domain="<?= htmlspecialchars($site['domain']) ?>" data-thematic="<?= htmlspecialchars($site['thematic_name']) ?>" data-kw="<?= $site['current_kw_count'] ?>" data-traffic="<?= $site['current_traffic'] ?>">
                     <td class="col-check"><input type="checkbox" class="row-check"></td>
                     <td><a href="<?= BASE_URL ?>/site.php?id=<?= $site['id'] ?>"><?= htmlspecialchars($site['domain']) ?></a></td>
                     <td><?= htmlspecialchars($site['thematic_name']) ?></td>

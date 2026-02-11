@@ -70,6 +70,36 @@ function refreshSite(siteId) {
     });
 }
 
+function refreshSelected() {
+    const rows = getSelectedRows();
+    if (rows.length === 0) {
+        alert('Aucun site selectionne.');
+        return;
+    }
+
+    const siteIds = rows.map(tr => parseInt(tr.dataset.id));
+    const status = document.getElementById('refresh-status');
+    if (status) status.textContent = 'Rafraichissement de ' + siteIds.length + ' site(s)...';
+
+    fetch(BASE_URL + '/refresh.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'refresh_selected', site_ids: siteIds })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            if (status) status.textContent = data.refreshed + ' site(s) rafraichi(s)';
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            if (status) status.textContent = 'Erreur : ' + (data.error || 'inconnue');
+        }
+    })
+    .catch(err => {
+        if (status) status.textContent = 'Erreur reseau';
+    });
+}
+
 // --- Delete ---
 
 function deleteSite(siteId, domain) {
