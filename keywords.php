@@ -12,11 +12,22 @@ foreach ($thematics as $t) {
     $thematicsById[$t['id']] = $t['name'];
 }
 
-// Filtre par thematique
+// Filtres
 $filterThematic = isset($_GET['thematic']) ? (int)$_GET['thematic'] : 0;
+$filterVolumeMin = isset($_GET['vol_min']) && $_GET['vol_min'] !== '' ? (int)$_GET['vol_min'] : null;
+$filterVolumeMax = isset($_GET['vol_max']) && $_GET['vol_max'] !== '' ? (int)$_GET['vol_max'] : null;
+$filterPosMin = isset($_GET['pos_min']) && $_GET['pos_min'] !== '' ? (int)$_GET['pos_min'] : null;
+$filterPosMax = isset($_GET['pos_max']) && $_GET['pos_max'] !== '' ? (int)$_GET['pos_max'] : null;
+
+// Pagination
+$perPageOptions = [20, 50, 100, 500, 1000];
+$perPage = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 20;
+if (!in_array($perPage, $perPageOptions)) {
+    $perPage = 20;
+}
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 
 // Recuperer les 30 meilleurs mots-cles de chaque site (par trafic)
-// On utilise une sous-requete avec ROW_NUMBER pour limiter a 30 par site
 $sql = '
     SELECT
         sk.keyword,
@@ -78,10 +89,26 @@ foreach ($allKeywords as $row) {
     }
 }
 
+// Appliquer les filtres volume et position
+$keywordsData = array_filter($keywordsData, function($kw) use ($filterVolumeMin, $filterVolumeMax, $filterPosMin, $filterPosMax) {
+    if ($filterVolumeMin !== null && $kw['volume'] < $filterVolumeMin) return false;
+    if ($filterVolumeMax !== null && $kw['volume'] > $filterVolumeMax) return false;
+    if ($filterPosMin !== null && $kw['top_position'] < $filterPosMin) return false;
+    if ($filterPosMax !== null && $kw['top_position'] > $filterPosMax) return false;
+    return true;
+});
+
 // Trier par trafic total descendant
 usort($keywordsData, function($a, $b) {
     return $b['total_traffic'] <=> $a['total_traffic'];
 });
+
+// Pagination
+$totalKeywords = count($keywordsData);
+$totalPages = max(1, ceil($totalKeywords / $perPage));
+$page = min($page, $totalPages);
+$offset = ($page - 1) * $perPage;
+$keywordsPage = array_slice($keywordsData, $offset, $perPage);
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -89,21 +116,59 @@ require_once __DIR__ . '/includes/header.php';
 <div class="page-header">
     <h1>Base de mots-cles</h1>
     <div class="page-actions">
-        <span class="text-muted text-small"><?= count($keywordsData) ?> mot<?= count($keywordsData) > 1 ? 's' : '' ?>-cle<?= count($keywordsData) > 1 ? 's' : '' ?> unique<?= count($keywordsData) > 1 ? 's' : '' ?></span>
+        <span class="text-muted text-small"><?= $totalKeywords ?> mot<?= $totalKeywords > 1 ? 's' : '' ?>-cle<?= $totalKeywords > 1 ? 's' : '' ?> unique<?= $totalKeywords > 1 ? 's' : '' ?></span>
     </div>
 </div>
 
-<div class="filters">
-    <span class="filter-label">Thematique :</span>
-    <select id="filter-thematic" onchange="filterByThematic(this.value)">
-        <option value="0">Toutes</option>
-        <?php foreach ($thematics as $t): ?>
-            <option value="<?= $t['id'] ?>" <?= $filterThematic === $t['id'] ? 'selected' : '' ?>>
-                <?= htmlspecialchars($t['name']) ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
-</div>
+<form method="GET" class="filters-form">
+    <div class="filters">
+        <span class="filter-label">Thematique :</span>
+        <select name="thematic" onchange="this.form.submit()">
+            <option value="0">Toutes</option>
+            <?php foreach ($thematics as $t): ?>
+                <option value="<?= $t['id'] ?>" <?= $filterThematic === $t['id'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($t['name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <span class="filter-label">Volume :</span>
+        <input type="number" name="vol_min" placeholder="Min" value="<?= $filterVolumeMin ?>" class="filter-input-sm">
+        <span class="filter-separator-dash">-</span>
+        <input type="number" name="vol_max" placeholder="Max" value="<?= $filterVolumeMax ?>" class="filter-input-sm">
+
+        <span class="filter-label">Position :</span>
+        <input type="number" name="pos_min" placeholder="Min" value="<?= $filterPosMin ?>" class="filter-input-sm">
+        <span class="filter-separator-dash">-</span>
+        <input type="number" name="pos_max" placeholder="Max" value="<?= $filterPosMax ?>" class="filter-input-sm">
+
+        <button type="submit" class="btn btn-sm">Filtrer</button>
+        <a href="<?= BASE_URL ?>/keywords.php" class="btn btn-sm">Reset</a>
+    </div>
+
+    <div class="filters">
+        <span class="filter-label">Afficher :</span>
+        <select name="per_page" onchange="this.form.submit()">
+            <?php foreach ($perPageOptions as $opt): ?>
+                <option value="<?= $opt ?>" <?= $perPage === $opt ? 'selected' : '' ?>><?= $opt ?></option>
+            <?php endforeach; ?>
+        </select>
+        <span class="text-muted text-small">par page</span>
+
+        <?php if ($totalPages > 1): ?>
+            <span class="filter-separator"></span>
+            <span class="pagination">
+                <?php if ($page > 1): ?>
+                    <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>" class="btn btn-sm">&laquo; Prec</a>
+                <?php endif; ?>
+                <span class="page-info">Page <?= $page ?> / <?= $totalPages ?></span>
+                <?php if ($page < $totalPages): ?>
+                    <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>" class="btn btn-sm">Suiv &raquo;</a>
+                <?php endif; ?>
+            </span>
+        <?php endif; ?>
+    </div>
+</form>
 
 <table class="data-table" id="keywords-table">
     <thead>
@@ -116,12 +181,12 @@ require_once __DIR__ . '/includes/header.php';
         </tr>
     </thead>
     <tbody>
-        <?php if (empty($keywordsData)): ?>
+        <?php if (empty($keywordsPage)): ?>
             <tr class="empty-row">
                 <td colspan="5">Aucun mot-cle trouve.</td>
             </tr>
         <?php else: ?>
-            <?php foreach ($keywordsData as $kw): ?>
+            <?php foreach ($keywordsPage as $kw): ?>
                 <tr>
                     <td><?= htmlspecialchars($kw['keyword']) ?></td>
                     <td class="num"><?= formatNumber($kw['volume']) ?></td>
@@ -138,16 +203,16 @@ require_once __DIR__ . '/includes/header.php';
     </tbody>
 </table>
 
-<script>
-function filterByThematic(value) {
-    const url = new URL(window.location);
-    if (value === '0') {
-        url.searchParams.delete('thematic');
-    } else {
-        url.searchParams.set('thematic', value);
-    }
-    window.location = url;
-}
-</script>
+<?php if ($totalPages > 1): ?>
+<div class="pagination-bottom">
+    <?php if ($page > 1): ?>
+        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>" class="btn btn-sm">&laquo; Precedent</a>
+    <?php endif; ?>
+    <span class="page-info">Page <?= $page ?> / <?= $totalPages ?></span>
+    <?php if ($page < $totalPages): ?>
+        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>" class="btn btn-sm">Suivant &raquo;</a>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

@@ -511,3 +511,53 @@ a {
     color: #555;
     white-space: nowrap;
 }
+
+/* --- Filter Inputs --- */
+.filters-form {
+    margin-bottom: 16px;
+}
+
+.filters-form .filters {
+    margin-bottom: 8px;
+}
+
+.filter-input-sm {
+    width: 70px;
+    padding: 5px 8px;
+    border: 1px solid #ccc;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.filter-input-sm:focus {
+    outline: none;
+    border-color: #666;
+}
+
+.filter-separator-dash {
+    color: #999;
+    margin: 0 4px;
+}
+
+/* --- Pagination --- */
+.pagination {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.page-info {
+    font-size: 13px;
+    color: #666;
+}
+
+.pagination-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 12px;
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+}
