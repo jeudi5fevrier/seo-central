@@ -523,10 +523,10 @@ a {
 }
 
 .filter-input-sm {
-    width: 50px;
-    padding: 4px 6px;
+    width: 45px;
+    padding: 5px 4px;
     border: 1px solid #ccc;
-    font-size: 12px;
+    font-size: 13px;
     font-family: inherit;
     text-align: center;
 }
