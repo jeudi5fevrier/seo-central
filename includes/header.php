@@ -9,6 +9,7 @@ $currentPage = basename($_SERVER['SCRIPT_NAME'], '.php');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle ?? APP_NAME) ?></title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/style.css?v=2">
+    <script>var BASE_URL = '<?= BASE_URL ?>';</script>
 </head>
 <body>
     <header class="main-header">

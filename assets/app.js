@@ -2,14 +2,7 @@
  * SEO Central - JavaScript
  */
 
-var BASE_URL = '';
-(function() {
-    var link = document.querySelector('link[rel="stylesheet"]');
-    if (link && link.href) {
-        // Supprimer /assets/style.css et tout ce qui suit (?v=X)
-        BASE_URL = link.href.replace(/\/assets\/style\.css.*$/, '');
-    }
-})();
+// BASE_URL est defini dans header.php
 
 // --- Refresh ---
 
