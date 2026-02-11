@@ -524,11 +524,18 @@ a {
 
 .filter-input-sm {
     width: 45px;
-    padding: 5px 4px;
+    padding: 5px 2px;
     border: 1px solid #ccc;
     font-size: 13px;
     font-family: inherit;
     text-align: center;
+    -moz-appearance: textfield;
+}
+
+.filter-input-sm::-webkit-outer-spin-button,
+.filter-input-sm::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .filter-input-sm:focus {
